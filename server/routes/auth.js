@@ -21,4 +21,13 @@ router.post('/setup', async (req, res) => {
   res.json({ message: 'Admin created' });
 });
 
+// POST /api/auth/reset-password (force reset, no auth required)
+router.post('/reset-password', async (req, res) => {
+  const admin = await Admin.findOne({});
+  if (!admin) return res.status(404).json({ message: 'No admin found' });
+  admin.password = req.body.newPassword;
+  await admin.save();
+  res.json({ message: 'Password reset' });
+});
+
 module.exports = router;
