@@ -36,6 +36,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (!isAdmin) { navigate('/admin/login'); return; }
     fetchRecent();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, tab]);
 
   const fetchRecent = async () => {

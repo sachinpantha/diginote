@@ -25,6 +25,7 @@ export default function HomePage() {
       setNotices(n.data.slice(0, 4));
       setCounts({ note: notes.data.length, question: qs.data.length, important: imp.data.length });
     }).finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedClass]);
 
   const stats = [

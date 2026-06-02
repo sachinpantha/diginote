@@ -27,6 +27,7 @@ export default function NotesList({ type }) {
   useEffect(() => {
     if (!selectedClass && !isAdmin) { navigate('/'); return; }
     fetchNotes();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type, selectedClass, subject]);
 
   const fetchNotes = async () => {

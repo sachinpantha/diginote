@@ -4,7 +4,7 @@ import { useClass } from '../context/ClassContext';
 import { useState } from 'react';
 import {
   HiHome, HiBookOpen, HiPencilAlt, HiStar, HiBell,
-  HiMenuAlt3, HiX, HiSwitchHorizontal, HiLogout, HiShieldCheck
+  HiSwitchHorizontal, HiLogout, HiShieldCheck
 } from 'react-icons/hi';
 
 const navLinks = [
@@ -20,7 +20,6 @@ export default function Navbar() {
   const { selectedClass, clearClass } = useClass();
   const navigate = useNavigate();
   const location = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
   const handleLogout = () => { logout(); navigate('/admin/login'); };
