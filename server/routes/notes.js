@@ -3,7 +3,6 @@ const multer = require('multer');
 const path = require('path');
 const Note = require('../models/Note');
 const auth = require('../middleware/auth');
-const sendPush = require('../utils/push');
 
 const storage = multer.diskStorage({
   destination: 'uploads/',
@@ -29,7 +28,6 @@ router.post('/', auth, upload.single('file'), async (req, res) => {
     fileName: req.file ? req.file.originalname : null
   });
   await note.save();
-  sendPush('New Material Published', `${note.type === 'note' ? 'Notes' : note.type === 'question' ? 'Questions' : 'Important Notes'}: ${note.title}`);
   res.status(201).json(note);
 });
 
