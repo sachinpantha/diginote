@@ -1,7 +1,6 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useClass } from '../context/ClassContext';
-import { useState } from 'react';
 import {
   HiHome, HiBookOpen, HiPencilAlt, HiStar, HiBell,
   HiSwitchHorizontal, HiLogout, HiShieldCheck
