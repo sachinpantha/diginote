@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ClassProvider } from './context/ClassContext';
 import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
+import InstallPrompt from './components/InstallPrompt';
 import HomePage from './pages/HomePage';
 import ClassSelect from './pages/ClassSelect';
 import NotesPage from './pages/NotesPage';
@@ -40,6 +41,7 @@ function Layout() {
         autoClose={2500}
         toastClassName="!rounded-xl !text-sm !font-medium"
       />
+      <InstallPrompt />
     </div>
   );
 }
