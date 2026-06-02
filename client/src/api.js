@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const api = axios.create({ baseURL: 'https://diginote-ltqw.onrender.com/api' });
+const api = axios.create({ baseURL: process.env.REACT_APP_API_URL });
 
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
