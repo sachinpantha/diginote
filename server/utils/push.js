@@ -2,7 +2,7 @@ const webpush = require('web-push');
 const PushSubscription = require('../models/PushSubscription');
 
 webpush.setVapidDetails(
-  process.env.VAPID_EMAIL,
+  process.env.VAPID_EMAIL || 'mailto:admin@everestdiginotes.com',
   process.env.VAPID_PUBLIC_KEY,
   process.env.VAPID_PRIVATE_KEY
 );
