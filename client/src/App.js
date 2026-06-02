@@ -13,11 +13,13 @@ import ImportantPage from './pages/ImportantPage';
 import NoticesPage from './pages/NoticesPage';
 import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage';
+import usePushNotification from './hooks/usePushNotification';
 
 function Layout() {
   const { isAdmin } = useAuth();
   const location = useLocation();
   const noNav = location.pathname === '/' || location.pathname === '/admin/login';
+  usePushNotification();
 
   return (
     <div className="min-h-screen bg-slate-50">

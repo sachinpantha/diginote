@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const Notice = require('../models/Notice');
 const auth = require('../middleware/auth');
+const sendPush = require('../utils/push');
 
 router.get('/', async (req, res) => {
   const notices = await Notice.find().sort({ createdAt: -1 });
@@ -10,6 +11,7 @@ router.get('/', async (req, res) => {
 router.post('/', auth, async (req, res) => {
   const notice = new Notice(req.body);
   await notice.save();
+  sendPush('📢 New Notice', notice.title);
   res.status(201).json(notice);
 });
 
