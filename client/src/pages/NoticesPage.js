@@ -78,7 +78,7 @@ export default function NoticesPage() {
                   )}
                 </div>
 
-                <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">{n.message}</p>
+                <p className="text-gray-600 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">{n.message}</p>
 
                 <p className="text-[10px] sm:text-xs text-gray-400 mt-3">
                   {new Date(n.createdAt).toLocaleDateString('en-GB', {
