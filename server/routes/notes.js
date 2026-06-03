@@ -1,12 +1,19 @@
 const router = require('express').Router();
 const multer = require('multer');
-const path = require('path');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
 const Note = require('../models/Note');
 const auth = require('../middleware/auth');
 
-const storage = multer.diskStorage({
-  destination: 'uploads/',
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: { folder: 'digitnotes', resource_type: 'auto' }
 });
 const upload = multer({ storage });
 
@@ -24,8 +31,9 @@ router.get('/', async (req, res) => {
 router.post('/', auth, upload.single('file'), async (req, res) => {
   const note = new Note({
     ...req.body,
-    fileUrl: req.file ? `/uploads/${req.file.filename}` : null,
-    fileName: req.file ? req.file.originalname : null
+    fileUrl: req.file ? req.file.path : null,
+    fileName: req.file ? req.file.originalname : null,
+    cloudinaryId: req.file ? req.file.filename : null
   });
   await note.save();
   res.status(201).json(note);
@@ -33,7 +41,11 @@ router.post('/', auth, upload.single('file'), async (req, res) => {
 
 // DELETE note (admin only)
 router.delete('/:id', auth, async (req, res) => {
-  await Note.findByIdAndDelete(req.params.id);
+  const note = await Note.findById(req.params.id);
+  if (note?.cloudinaryId) {
+    await cloudinary.uploader.destroy(note.cloudinaryId, { resource_type: 'raw' }).catch(() => {});
+  }
+  await note.deleteOne();
   res.json({ message: 'Deleted' });
 });
 

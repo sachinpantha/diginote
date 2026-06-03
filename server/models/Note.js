@@ -9,6 +9,7 @@ const noteSchema = new mongoose.Schema({
   content: { type: String },
   fileUrl: { type: String },
   fileName: { type: String },
+  cloudinaryId: { type: String },
   type: { type: String, enum: ['note', 'question', 'important'], default: 'note' },
   createdAt: { type: Date, default: Date.now }
 });
