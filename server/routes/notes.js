@@ -13,7 +13,11 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: { folder: 'digitnotes', resource_type: 'auto' }
+  params: (req, file) => ({
+    folder: 'digitnotes',
+    resource_type: file.mimetype === 'application/pdf' ? 'raw' : 'auto',
+    format: file.mimetype === 'application/pdf' ? 'pdf' : undefined
+  })
 });
 const upload = multer({ storage });
 
@@ -43,7 +47,8 @@ router.post('/', auth, upload.single('file'), async (req, res) => {
 router.delete('/:id', auth, async (req, res) => {
   const note = await Note.findById(req.params.id);
   if (note?.cloudinaryId) {
-    await cloudinary.uploader.destroy(note.cloudinaryId, { resource_type: 'raw' }).catch(() => {});
+    const isRaw = note.fileUrl?.includes('/raw/upload/');
+    await cloudinary.uploader.destroy(note.cloudinaryId, { resource_type: isRaw ? 'raw' : 'image' }).catch(() => {});
   }
   await note.deleteOne();
   res.json({ message: 'Deleted' });
