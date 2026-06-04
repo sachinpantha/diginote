@@ -31,6 +31,18 @@ router.get('/file/:id', async (req, res) => {
   }
 });
 
+// GET counts per type for a class (replaces 3 separate count fetches)
+router.get('/counts', async (req, res) => {
+  const match = req.query.class ? { class: req.query.class } : {};
+  const results = await Note.aggregate([
+    { $match: match },
+    { $group: { _id: '$type', count: { $sum: 1 } } }
+  ]);
+  const counts = { note: 0, question: 0, important: 0 };
+  results.forEach(r => { counts[r._id] = r.count; });
+  res.json(counts);
+});
+
 // GET all notes
 router.get('/', async (req, res) => {
   const filter = {};

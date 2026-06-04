@@ -14,4 +14,7 @@ const noteSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+noteSchema.index({ type: 1, class: 1, subject: 1 });
+noteSchema.index({ chapterNumber: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Note', noteSchema);

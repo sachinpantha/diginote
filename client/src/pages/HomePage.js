@@ -18,12 +18,10 @@ export default function HomePage() {
     if (!selectedClass) { navigate('/'); return; }
     Promise.all([
       api.get('/notices'),
-      api.get('/notes', { params: { type: 'note',      class: selectedClass } }),
-      api.get('/notes', { params: { type: 'question',  class: selectedClass } }),
-      api.get('/notes', { params: { type: 'important', class: selectedClass } }),
-    ]).then(([n, notes, qs, imp]) => {
+      api.get('/notes/counts', { params: { class: selectedClass } }),
+    ]).then(([n, c]) => {
       setNotices(n.data.slice(0, 4));
-      setCounts({ note: notes.data.length, question: qs.data.length, important: imp.data.length });
+      setCounts(c.data);
     }).finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedClass]);

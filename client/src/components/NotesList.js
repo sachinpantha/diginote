@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useClass } from '../context/ClassContext';
@@ -17,6 +17,7 @@ export default function NotesList({ type }) {
   const [loading, setLoading] = useState(true);
   const [subject, setSubject] = useState('');
   const [expandedChapter, setExpandedChapter] = useState(null);
+  const debounceRef = useRef(null);
 
   const cfg = {
     note:      { title: 'Chapter Notes',      Icon: HiBookOpen,  iconBg: 'bg-primary-100', iconCls: 'text-primary-700', chBg: 'bg-primary-100 text-primary-700', badgeBg: 'bg-primary-50 text-primary-700', accentBar: 'bg-primary-600' },
@@ -26,7 +27,9 @@ export default function NotesList({ type }) {
 
   useEffect(() => {
     if (!selectedClass && !isAdmin) { navigate('/'); return; }
-    fetchNotes();
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(fetchNotes, 400);
+    return () => clearTimeout(debounceRef.current);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type, selectedClass, subject]);
 
