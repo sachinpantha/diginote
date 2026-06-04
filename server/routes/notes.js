@@ -25,12 +25,17 @@ const upload = multer({ storage });
 router.get('/file/:id', async (req, res) => {
   const note = await Note.findById(req.params.id);
   if (!note?.fileUrl) return res.status(404).json({ message: 'File not found' });
-  const https = require('https');
-  https.get(note.fileUrl, (stream) => {
-    res.setHeader('Content-Type', 'application/pdf');
+  const axios = require('axios');
+  try {
+    const response = await axios.get(note.fileUrl, { responseType: 'stream' });
+    res.setHeader('Content-Type', response.headers['content-type'] || 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="${note.fileName || 'file.pdf'}"`);
-    stream.pipe(res);
-  }).on('error', () => res.status(500).json({ message: 'Failed to fetch file' }));
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    if (response.headers['content-length']) res.setHeader('Content-Length', response.headers['content-length']);
+    response.data.pipe(res);
+  } catch (e) {
+    res.status(500).json({ message: 'Failed to fetch file' });
+  }
 });
 
 // GET all notes (with optional filters)
