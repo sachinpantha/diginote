@@ -17,7 +17,7 @@ export default function HomePage() {
   useEffect(() => {
     if (!selectedClass) { navigate('/'); return; }
     Promise.all([
-      api.get('/notices'),
+      api.get('/notices', { params: { class: selectedClass } }),
       api.get('/notes/counts', { params: { class: selectedClass } }),
     ]).then(([n, c]) => {
       setNotices(n.data.slice(0, 4));

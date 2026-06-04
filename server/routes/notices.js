@@ -3,7 +3,10 @@ const Notice = require('../models/Notice');
 const auth = require('../middleware/auth');
 
 router.get('/', async (req, res) => {
-  const notices = await Notice.find().sort({ createdAt: -1 });
+  const filter = req.query.class
+    ? { $or: [{ class: req.query.class }, { class: null }] }
+    : {};
+  const notices = await Notice.find(filter).sort({ createdAt: -1 });
   res.json(notices);
 });
 

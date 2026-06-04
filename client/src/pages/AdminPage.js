@@ -12,7 +12,7 @@ const CLASSES  = ['8', '9', '10'];
 const SUBJECTS = ['Computer Science', 'Mathematics', 'Science', 'English', 'Nepali', 'Social Studies', 'Optional Math'];
 
 const emptyNote   = { title: '', chapter: '', chapterNumber: '', subject: 'Computer Science', class: '10', content: '', type: 'note' };
-const emptyNotice = { title: '', message: '', important: false };
+const emptyNotice = { title: '', message: '', important: false, class: null };
 
 const tabs = [
   { id: 'note',      Icon: HiBookOpen,  label: 'Chapter Notes',  shortLabel: 'Notes'     },
@@ -221,6 +221,15 @@ export default function AdminPage() {
             ) : (
               <form onSubmit={handleNoticeSubmit} className="space-y-3.5 sm:space-y-4">
                 <div>
+                  <label className="form-label">Send To *</label>
+                  <select value={noticeForm.class ?? ''}
+                    onChange={e => setNoticeForm(f => ({ ...f, class: e.target.value || null }))}
+                    className="input-field">
+                    <option value="">All Classes</option>
+                    {CLASSES.map(c => <option key={c} value={c}>Class {c}</option>)}
+                  </select>
+                </div>
+                <div>
                   <label className="form-label">Notice Title *</label>
                   <input placeholder="e.g. Exam Schedule Updated"
                     value={noticeForm.title}
@@ -296,7 +305,7 @@ export default function AdminPage() {
                             <p className="text-xs sm:text-sm font-semibold text-gray-800 truncate">{n.title}</p>
                             {n.important && <span className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />}
                           </div>
-                          <p className="text-[10px] sm:text-xs text-gray-400">{new Date(n.createdAt).toLocaleDateString()}</p>
+                          <p className="text-[10px] sm:text-xs text-gray-400">{n.class ? `Class ${n.class}` : 'All Classes'} · {new Date(n.createdAt).toLocaleDateString()}</p>
                         </div>
                         <button onClick={() => deleteNotice(n._id)}
                           className="flex-shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 active:bg-red-100 transition-colors touch-target">

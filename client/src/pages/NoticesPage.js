@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useClass } from '../context/ClassContext';
 import { toast } from 'react-toastify';
 import { HiBell, HiExclamation, HiTrash } from 'react-icons/hi';
 
@@ -8,11 +9,13 @@ export default function NoticesPage() {
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
   const { isAdmin } = useAuth();
+  const { selectedClass } = useClass();
 
-  useEffect(() => { fetchNotices(); }, []);
+  useEffect(() => { fetchNotices(); }, [selectedClass]);
 
   const fetchNotices = async () => {
-    const { data } = await api.get('/notices');
+    const params = selectedClass ? { class: selectedClass } : {};
+    const { data } = await api.get('/notices', { params });
     setNotices(data);
     setLoading(false);
   };
@@ -80,11 +83,18 @@ export default function NoticesPage() {
 
                 <p className="text-gray-600 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">{n.message}</p>
 
-                <p className="text-[10px] sm:text-xs text-gray-400 mt-3">
-                  {new Date(n.createdAt).toLocaleDateString('en-GB', {
-                    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
-                  })}
-                </p>
+                <div className="flex items-center justify-between mt-3">
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                    n.class ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-500'
+                  }`}>
+                    {n.class ? `Class ${n.class}` : 'All Classes'}
+                  </span>
+                  <p className="text-[10px] sm:text-xs text-gray-400">
+                    {new Date(n.createdAt).toLocaleDateString('en-GB', {
+                      weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+                    })}
+                  </p>
+                </div>
               </div>
             </div>
           ))}
