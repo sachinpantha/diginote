@@ -21,6 +21,18 @@ const storage = new CloudinaryStorage({
 });
 const upload = multer({ storage });
 
+// Proxy file to bypass Cloudinary free-tier delivery restrictions
+router.get('/file/:id', async (req, res) => {
+  const note = await Note.findById(req.params.id);
+  if (!note?.fileUrl) return res.status(404).json({ message: 'File not found' });
+  const https = require('https');
+  https.get(note.fileUrl, (stream) => {
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${note.fileName || 'file.pdf'}"`);
+    stream.pipe(res);
+  }).on('error', () => res.status(500).json({ message: 'Failed to fetch file' }));
+});
+
 // GET all notes (with optional filters)
 router.get('/', async (req, res) => {
   const filter = {};

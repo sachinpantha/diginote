@@ -163,7 +163,7 @@ function NoteItem({ note, isAdmin, onDelete, badgeBg }) {
 
           {/* Download button */}
           {note.fileUrl && (
-            <a href={note.fileUrl} target="_blank" rel="noreferrer"
+            <a href={`${process.env.REACT_APP_API_URL}/notes/file/${note._id}`} target="_blank" rel="noreferrer"
               className="inline-flex items-center gap-1.5 mt-2.5 text-xs font-semibold
                          text-primary-700 bg-primary-50 active:bg-primary-100
                          px-3 py-2 rounded-lg border border-primary-100
