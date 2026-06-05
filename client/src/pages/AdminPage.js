@@ -7,8 +7,11 @@ import {
   HiBookOpen, HiStar, HiBell, HiLightningBolt,
   HiUpload, HiTrash, HiLogout, HiShieldCheck,
   HiPlus, HiMinus, HiPencil, HiAdjustments,
-  HiSwitchHorizontal, HiCheckCircle
+  HiSwitchHorizontal, HiCheckCircle, HiX, HiSave
 } from 'react-icons/hi';
+
+// alias to avoid name clash with HiPencil used for fill-in badge
+const HiPencilEdit = HiPencil;
 
 const CLASSES  = ['8', '9', '10'];
 const SUBJECTS = ['Computer Science', 'Mathematics', 'Science', 'English', 'Nepali', 'Social Studies', 'Optional Math'];
@@ -42,6 +45,8 @@ export default function AdminPage() {
   const [moduleMeta, setModuleMeta] = useState(emptyModule);
   const [questions, setQuestions]   = useState([{ ...emptyMCQ }]);
   const [publishing, setPublishing] = useState(false);
+  const [editingId, setEditingId]   = useState(null);   // null = create mode, string = edit mode
+  const [loadingEdit, setLoadingEdit] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) { navigate('/admin/login'); return; }
@@ -89,12 +94,34 @@ export default function AdminPage() {
     if (!valid) { toast.error('Fill all question fields'); return; }
     setPublishing(true);
     try {
-      await api.post('/quiz', { ...moduleMeta, questions });
-      toast.success('Quiz module published!');
-      setModuleMeta(emptyModule);
-      setQuestions([{ ...emptyMCQ }]);
+      if (editingId) {
+        await api.put(`/quiz/${editingId}`, { ...moduleMeta, questions });
+        toast.success('Module updated!');
+      } else {
+        await api.post('/quiz', { ...moduleMeta, questions });
+        toast.success('Quiz module published!');
+      }
+      resetQuizForm();
       fetchRecent();
-    } catch { toast.error('Failed to publish'); } finally { setPublishing(false); }
+    } catch { toast.error(editingId ? 'Failed to update' : 'Failed to publish'); } finally { setPublishing(false); }
+  };
+
+  const resetQuizForm = () => {
+    setModuleMeta(emptyModule);
+    setQuestions([{ ...emptyMCQ }]);
+    setEditingId(null);
+  };
+
+  const startEdit = async (quiz) => {
+    setLoadingEdit(quiz._id);
+    try {
+      const { data } = await api.get(`/quiz/${quiz._id}/questions`);
+      setModuleMeta({ title: quiz.title, chapter: quiz.chapter, chapterNumber: quiz.chapterNumber, subject: quiz.subject, class: quiz.class, description: quiz.description || '' });
+      setQuestions(data);
+      setEditingId(quiz._id);
+      // scroll form into view on mobile
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch { toast.error('Could not load module'); } finally { setLoadingEdit(null); }
   };
 
   const deleteNote   = async (id) => { await api.delete(`/notes/${id}`);   toast.success('Deleted'); fetchRecent(); };
@@ -154,9 +181,18 @@ export default function AdminPage() {
 
               {/* Module meta card */}
               <div className="card border border-gray-100 p-4 sm:p-5 space-y-3.5">
-                <h2 className="font-bold text-gray-900 flex items-center gap-2 text-sm sm:text-base">
-                  <HiLightningBolt className="w-4 h-4 text-violet-600" /> New Quiz Module
-                </h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="font-bold text-gray-900 flex items-center gap-2 text-sm sm:text-base">
+                    <HiLightningBolt className="w-4 h-4 text-violet-600" />
+                    {editingId ? 'Edit Quiz Module' : 'New Quiz Module'}
+                  </h2>
+                  {editingId && (
+                    <button type="button" onClick={resetQuizForm}
+                      className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 hover:bg-gray-200 px-2.5 py-1.5 rounded-lg font-medium transition-colors touch-manipulation">
+                      <HiX className="w-3.5 h-3.5" /> Cancel Edit
+                    </button>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="form-label">Class *</label>
@@ -313,10 +349,14 @@ export default function AdminPage() {
               </div>
 
               <button type="submit" disabled={publishing}
-                className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition-colors shadow-sm touch-manipulation">
+                className={`w-full flex items-center justify-center gap-2 disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition-colors shadow-sm touch-manipulation ${
+                  editingId ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-violet-600 hover:bg-violet-700'
+                }`}>
                 {publishing
-                  ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Publishing...</>
-                  : <><HiLightningBolt className="w-4 h-4" /> Publish Module ({questions.length} Q{questions.length > 1 ? 's' : ''})</>}
+                  ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {editingId ? 'Saving...' : 'Publishing...'}</>
+                  : editingId
+                    ? <><HiSave className="w-4 h-4" /> Save Changes ({questions.length} Q{questions.length > 1 ? 's' : ''})</>
+                    : <><HiLightningBolt className="w-4 h-4" /> Publish Module ({questions.length} Q{questions.length > 1 ? 's' : ''})</>}
               </button>
             </form>
           </div>
@@ -337,11 +377,19 @@ export default function AdminPage() {
                 : (
                   <div className="divide-y divide-gray-100">
                     {recentQuizzes.map(q => (
-                      <div key={q._id} className="flex items-center gap-3 px-4 sm:px-5 py-3 hover:bg-gray-50">
+                      <div key={q._id} className={`flex items-center gap-2 px-4 sm:px-5 py-3 transition-colors ${
+                        editingId === q._id ? 'bg-indigo-50' : 'hover:bg-gray-50'
+                      }`}>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs sm:text-sm font-semibold text-gray-800 truncate">{q.title}</p>
                           <p className="text-[10px] sm:text-xs text-gray-400">Class {q.class} · {q.subject} · {q.questionCount} Qs</p>
                         </div>
+                        <button onClick={() => startEdit(q)} disabled={loadingEdit === q._id}
+                          className="flex-shrink-0 p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors touch-target">
+                          {loadingEdit === q._id
+                            ? <div className="w-3.5 h-3.5 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />
+                            : <HiPencilEdit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                        </button>
                         <button onClick={() => deleteQuiz(q._id)}
                           className="flex-shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors touch-target">
                           <HiTrash className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

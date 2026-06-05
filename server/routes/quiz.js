@@ -54,6 +54,28 @@ router.post('/', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ message: e.message }); }
 });
 
+// PUT /api/quiz/:id — update module meta + questions (admin only)
+router.put('/:id', auth, async (req, res) => {
+  try {
+    const quiz = await Quiz.findById(req.params.id);
+    if (!quiz) return res.status(404).json({ message: 'Not found' });
+    const { questions, ...meta } = req.body;
+    if (!questions || !questions.length)
+      return res.status(400).json({ message: 'At least one question required' });
+    // Unpin old, pin new
+    await axios.delete(`https://api.pinata.cloud/pinning/unpin/${quiz.ipfsHash}`, {
+      headers: { Authorization: `Bearer ${PINATA_JWT()}` }
+    }).catch(() => {});
+    const ipfsHash = await pinJSON(questions);
+    const updated = await Quiz.findByIdAndUpdate(
+      req.params.id,
+      { ...meta, ipfsHash, questionCount: questions.length },
+      { new: true }
+    );
+    res.json(updated);
+  } catch (e) { res.status(500).json({ message: e.message }); }
+});
+
 // DELETE /api/quiz/:id (admin only)
 router.delete('/:id', auth, async (req, res) => {
   try {
