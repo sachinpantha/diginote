@@ -14,6 +14,7 @@ app.get('/ping', (req, res) => res.send('ok'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/notes', require('./routes/notes'));
 app.use('/api/notices', require('./routes/notices'));
+app.use('/api/quiz',    require('./routes/quiz'));
 
 mongoose.connect(process.env.MONGO_URI, { maxPoolSize: 10 })
   .then(() => {
