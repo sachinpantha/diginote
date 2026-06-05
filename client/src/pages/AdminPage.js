@@ -4,8 +4,10 @@ import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import {
-  HiBookOpen, HiPencilAlt, HiStar, HiBell, HiLightningBolt,
-  HiUpload, HiTrash, HiLogout, HiShieldCheck, HiPlus, HiMinus
+  HiBookOpen, HiStar, HiBell, HiLightningBolt,
+  HiUpload, HiTrash, HiLogout, HiShieldCheck,
+  HiPlus, HiMinus, HiPencil, HiAdjustments,
+  HiSwitchHorizontal, HiCheckCircle
 } from 'react-icons/hi';
 
 const CLASSES  = ['8', '9', '10'];
@@ -13,33 +15,30 @@ const SUBJECTS = ['Computer Science', 'Mathematics', 'Science', 'English', 'Nepa
 
 const emptyNote   = { title: '', chapter: '', chapterNumber: '', subject: 'Computer Science', class: '10', content: '', type: 'note' };
 const emptyNotice = { title: '', message: '', important: false, class: null };
-
-const emptyMCQ  = { type: 'mcq',  question: '', options: ['', '', '', ''], answer: 0, explanation: '', chapter: '' };
-const emptyFill = { type: 'fill', question: '', answer: '', explanation: '', chapter: '' };
+const emptyMCQ    = { type: 'mcq',  question: '', options: ['', '', '', ''], answer: 0, explanation: '', chapter: '' };
+const emptyFill   = { type: 'fill', question: '', answer: '', explanation: '', chapter: '' };
 const emptyModule = { title: '', chapter: '', chapterNumber: '', subject: 'Computer Science', class: '10', description: '' };
 
 const tabs = [
-  { id: 'note',      Icon: HiBookOpen,      label: 'Chapter Notes',  shortLabel: 'Notes'   },
-  { id: 'question',  Icon: HiPencilAlt,     label: 'Practice Q&A',   shortLabel: 'Q&A'     },
-  { id: 'important', Icon: HiStar,          label: 'Important Notes', shortLabel: 'Imp.'    },
-  { id: 'notice',    Icon: HiBell,          label: 'Notices',         shortLabel: 'Notice'  },
-  { id: 'quiz',      Icon: HiLightningBolt, label: 'Quiz Modules',    shortLabel: 'Quiz'    },
+  { id: 'note',      Icon: HiBookOpen,      label: 'Chapter Notes',  shortLabel: 'Notes'  },
+  { id: 'important', Icon: HiStar,          label: 'Important Notes', shortLabel: 'Imp.'   },
+  { id: 'notice',    Icon: HiBell,          label: 'Notices',         shortLabel: 'Notice' },
+  { id: 'quiz',      Icon: HiLightningBolt, label: 'Quiz Modules',    shortLabel: 'Quiz'   },
 ];
 
 export default function AdminPage() {
   const { isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState('note');
-  const [noteForm, setNoteForm] = useState(emptyNote);
+  const [noteForm, setNoteForm]     = useState(emptyNote);
   const [noticeForm, setNoticeForm] = useState(emptyNotice);
-  const [file, setFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [recentNotes, setRecentNotes] = useState([]);
+  const [file, setFile]             = useState(null);
+  const [uploading, setUploading]   = useState(false);
+  const [recentNotes, setRecentNotes]     = useState([]);
   const [recentNotices, setRecentNotices] = useState([]);
   const [recentQuizzes, setRecentQuizzes] = useState([]);
   const [showRecent, setShowRecent] = useState(false);
 
-  // Quiz builder state
   const [moduleMeta, setModuleMeta] = useState(emptyModule);
   const [questions, setQuestions]   = useState([{ ...emptyMCQ }]);
   const [publishing, setPublishing] = useState(false);
@@ -91,21 +90,21 @@ export default function AdminPage() {
     setPublishing(true);
     try {
       await api.post('/quiz', { ...moduleMeta, questions });
-      toast.success('Quiz module published! 🎉');
+      toast.success('Quiz module published!');
       setModuleMeta(emptyModule);
       setQuestions([{ ...emptyMCQ }]);
       fetchRecent();
     } catch { toast.error('Failed to publish'); } finally { setPublishing(false); }
   };
 
-  const deleteNote   = async (id) => { await api.delete(`/notes/${id}`);  toast.success('Deleted'); fetchRecent(); };
+  const deleteNote   = async (id) => { await api.delete(`/notes/${id}`);   toast.success('Deleted'); fetchRecent(); };
   const deleteNotice = async (id) => { await api.delete(`/notices/${id}`); toast.success('Deleted'); fetchRecent(); };
-  const deleteQuiz   = async (id) => { await api.delete(`/quiz/${id}`);   toast.success('Deleted'); fetchRecent(); };
+  const deleteQuiz   = async (id) => { await api.delete(`/quiz/${id}`);    toast.success('Deleted'); fetchRecent(); };
 
-  const addQuestion = (type) => setQuestions(qs => [...qs, type === 'mcq' ? { ...emptyMCQ } : { ...emptyFill }]);
-  const removeQ = (i) => setQuestions(qs => qs.filter((_, idx) => idx !== i));
-  const updateQ = (i, field, val) => setQuestions(qs => qs.map((q, idx) => idx === i ? { ...q, [field]: val } : q));
-  const updateOption = (qi, oi, val) => setQuestions(qs => qs.map((q, idx) =>
+  const addQuestion  = (type) => setQuestions(qs => [...qs, type === 'mcq' ? { ...emptyMCQ } : { ...emptyFill }]);
+  const removeQ      = (i)    => setQuestions(qs => qs.filter((_, idx) => idx !== i));
+  const updateQ      = (i, field, val) => setQuestions(qs => qs.map((q, idx) => idx === i ? { ...q, [field]: val } : q));
+  const updateOption = (qi, oi, val)   => setQuestions(qs => qs.map((q, idx) =>
     idx === qi ? { ...q, options: q.options.map((o, j) => j === oi ? val : o) } : q
   ));
 
@@ -122,7 +121,7 @@ export default function AdminPage() {
             <HiShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" />
             <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Admin Dashboard</h1>
           </div>
-          <p className="text-gray-400 text-xs sm:text-sm">Manage notes, questions, quiz &amp; notices</p>
+          <p className="text-gray-400 text-xs sm:text-sm">Manage notes, quiz modules &amp; notices</p>
         </div>
         <button onClick={() => { logout(); navigate('/admin/login'); }}
           className="flex items-center gap-1.5 btn-danger text-xs sm:text-sm">
@@ -132,7 +131,7 @@ export default function AdminPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 overflow-x-auto no-scrollbar mb-5 sm:mb-7 border-b border-gray-200 pb-0">
+      <div className="flex gap-1 overflow-x-auto no-scrollbar mb-5 sm:mb-7 border-b border-gray-200">
         {tabs.map(({ id, Icon, label, shortLabel }) => (
           <button key={id}
             onClick={() => { setTab(id); setNoteForm({ ...emptyNote, type: id }); }}
@@ -153,7 +152,7 @@ export default function AdminPage() {
           <div className="lg:col-span-3">
             <form onSubmit={handleQuizSubmit} className="space-y-4">
 
-              {/* Module meta */}
+              {/* Module meta card */}
               <div className="card border border-gray-100 p-4 sm:p-5 space-y-3.5">
                 <h2 className="font-bold text-gray-900 flex items-center gap-2 text-sm sm:text-base">
                   <HiLightningBolt className="w-4 h-4 text-violet-600" /> New Quiz Module
@@ -196,110 +195,133 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Questions */}
+              {/* Question cards */}
               {questions.map((q, qi) => (
-                <div key={qi} className="card border border-gray-100 p-4 sm:p-5 space-y-3 relative">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
-                      Q{qi + 1} · {q.type === 'fill' ? '✏️ Fill in the Blank' : '🎯 MCQ'}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      {/* Toggle type */}
-                      <button type="button" onClick={() => updateQ(qi, 'type', q.type === 'fill' ? 'mcq' : 'fill')}
-                        className="text-[11px] font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 px-2.5 py-1 rounded-lg border border-violet-100 transition-colors">
-                        Switch to {q.type === 'fill' ? 'MCQ' : 'Fill'}
-                      </button>
-                      {questions.length > 1 && (
-                        <button type="button" onClick={() => removeQ(qi)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                          <HiMinus className="w-4 h-4" />
+                <div key={qi} className="card border border-gray-100 overflow-hidden">
+                  {/* Card top bar */}
+                  <div className={`h-0.5 ${q.type === 'fill' ? 'bg-blue-400' : 'bg-violet-500'}`} />
+                  <div className="p-4 sm:p-5 space-y-3">
+
+                    {/* Q header */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 flex-shrink-0">
+                          {qi + 1}
+                        </span>
+                        <span className={`flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                          q.type === 'fill'
+                            ? 'bg-blue-50 text-blue-600 border border-blue-100'
+                            : 'bg-violet-50 text-violet-600 border border-violet-100'
+                        }`}>
+                          {q.type === 'fill'
+                            ? <><HiPencil className="w-3 h-3" /> Fill-in</>
+                            : <><HiAdjustments className="w-3 h-3" /> MCQ</>}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button type="button" onClick={() => updateQ(qi, 'type', q.type === 'fill' ? 'mcq' : 'fill')}
+                          className="flex items-center gap-1 text-[11px] font-semibold text-gray-500 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded-lg transition-colors touch-manipulation">
+                          <HiSwitchHorizontal className="w-3 h-3" />
+                          <span className="hidden sm:inline">Switch</span>
                         </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="form-label">Question *</label>
-                    <textarea placeholder="Enter question..." value={q.question} rows={2}
-                      onChange={e => updateQ(qi, 'question', e.target.value)}
-                      required className="input-field resize-none" />
-                  </div>
-
-                  <div>
-                    <label className="form-label">Chapter (optional)</label>
-                    <input placeholder="e.g. Binary Numbers" value={q.chapter}
-                      onChange={e => updateQ(qi, 'chapter', e.target.value)} className="input-field" />
-                  </div>
-
-                  {/* MCQ options */}
-                  {q.type === 'mcq' && (
-                    <div>
-                      <label className="form-label">Options * <span className="text-gray-400 font-normal">(click radio = correct answer)</span></label>
-                      <div className="space-y-2">
-                        {q.options.map((opt, oi) => (
-                          <div key={oi} className={`flex items-center gap-2.5 p-2.5 rounded-xl border-2 transition-colors ${
-                            q.answer === oi ? 'border-green-400 bg-green-50' : 'border-gray-200 bg-white'
-                          }`}>
-                            <button type="button" onClick={() => updateQ(qi, 'answer', oi)}
-                              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                                q.answer === oi ? 'border-green-500 bg-green-500' : 'border-gray-300 bg-white hover:border-green-400'
-                              }`}>
-                              {q.answer === oi && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
-                            </button>
-                            <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                              q.answer === oi ? 'bg-green-400 text-white' : 'bg-gray-100 text-gray-500'
-                            }`}>
-                              {String.fromCharCode(65 + oi)}
-                            </span>
-                            <input placeholder={`Option ${String.fromCharCode(65 + oi)}`}
-                              value={opt}
-                              onChange={e => updateOption(qi, oi, e.target.value)}
-                              required className="flex-1 bg-transparent outline-none text-sm text-gray-800 placeholder-gray-400" />
-                          </div>
-                        ))}
+                        {questions.length > 1 && (
+                          <button type="button" onClick={() => removeQ(qi)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors touch-manipulation">
+                            <HiMinus className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </div>
-                  )}
 
-                  {/* Fill answer */}
-                  {q.type === 'fill' && (
+                    {/* Question text */}
                     <div>
-                      <label className="form-label">Correct Answer *</label>
-                      <input placeholder="e.g. Arithmetic Logic Unit" value={q.answer}
-                        onChange={e => updateQ(qi, 'answer', e.target.value)} required className="input-field" />
+                      <label className="form-label">Question *</label>
+                      <textarea placeholder="Enter question..." value={q.question} rows={2}
+                        onChange={e => updateQ(qi, 'question', e.target.value)}
+                        required className="input-field resize-none text-sm" />
                     </div>
-                  )}
 
-                  <div>
-                    <label className="form-label">Explanation <span className="text-gray-400 font-normal">(optional)</span></label>
-                    <input placeholder="Brief explanation shown after answer..." value={q.explanation}
-                      onChange={e => updateQ(qi, 'explanation', e.target.value)} className="input-field" />
+                    {/* Chapter tag */}
+                    <div>
+                      <label className="form-label">Chapter tag <span className="text-gray-400 font-normal normal-case">(optional)</span></label>
+                      <input placeholder="e.g. Binary Numbers" value={q.chapter}
+                        onChange={e => updateQ(qi, 'chapter', e.target.value)} className="input-field text-sm" />
+                    </div>
+
+                    {/* MCQ options — 2-column on mobile too */}
+                    {q.type === 'mcq' && (
+                      <div>
+                        <label className="form-label">Options * <span className="text-gray-400 font-normal normal-case">(tap circle = correct)</span></label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {q.options.map((opt, oi) => (
+                            <div key={oi} className={`flex items-center gap-2 p-2.5 rounded-xl border-2 transition-colors ${
+                              q.answer === oi ? 'border-green-400 bg-green-50' : 'border-gray-200 bg-white'
+                            }`}>
+                              <button type="button" onClick={() => updateQ(qi, 'answer', oi)}
+                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors touch-manipulation ${
+                                  q.answer === oi ? 'border-green-500 bg-green-500' : 'border-gray-300 hover:border-green-400'
+                                }`}>
+                                {q.answer === oi && <HiCheckCircle className="w-3.5 h-3.5 text-white" />}
+                              </button>
+                              <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
+                                q.answer === oi ? 'bg-green-400 text-white' : 'bg-gray-100 text-gray-500'
+                              }`}>
+                                {String.fromCharCode(65 + oi)}
+                              </span>
+                              <input placeholder={`Option ${String.fromCharCode(65 + oi)}`}
+                                value={opt} onChange={e => updateOption(qi, oi, e.target.value)}
+                                required className="flex-1 bg-transparent outline-none text-sm text-gray-800 placeholder-gray-400 min-w-0" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Fill answer */}
+                    {q.type === 'fill' && (
+                      <div>
+                        <label className="form-label">Correct Answer *</label>
+                        <input placeholder="e.g. Arithmetic Logic Unit" value={q.answer}
+                          onChange={e => updateQ(qi, 'answer', e.target.value)} required className="input-field text-sm" />
+                      </div>
+                    )}
+
+                    {/* Explanation */}
+                    <div>
+                      <label className="form-label">Explanation <span className="text-gray-400 font-normal normal-case">(optional)</span></label>
+                      <input placeholder="Brief explanation shown after answer..." value={q.explanation}
+                        onChange={e => updateQ(qi, 'explanation', e.target.value)} className="input-field text-sm" />
+                    </div>
                   </div>
                 </div>
               ))}
 
               {/* Add question buttons */}
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button type="button" onClick={() => addQuestion('mcq')}
-                  className="flex-1 flex items-center justify-center gap-1.5 border-2 border-dashed border-violet-300 text-violet-600 hover:bg-violet-50 py-2.5 rounded-xl text-sm font-semibold transition-colors touch-manipulation">
-                  <HiPlus className="w-4 h-4" /> Add MCQ
+                  className="flex items-center justify-center gap-1.5 border-2 border-dashed border-violet-300 text-violet-600 hover:bg-violet-50 py-3 rounded-xl text-xs sm:text-sm font-semibold transition-colors touch-manipulation">
+                  <HiPlus className="w-4 h-4" />
+                  <HiAdjustments className="w-3.5 h-3.5" />
+                  Add MCQ
                 </button>
                 <button type="button" onClick={() => addQuestion('fill')}
-                  className="flex-1 flex items-center justify-center gap-1.5 border-2 border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 py-2.5 rounded-xl text-sm font-semibold transition-colors touch-manipulation">
-                  <HiPlus className="w-4 h-4" /> Add Fill-in
+                  className="flex items-center justify-center gap-1.5 border-2 border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 py-3 rounded-xl text-xs sm:text-sm font-semibold transition-colors touch-manipulation">
+                  <HiPlus className="w-4 h-4" />
+                  <HiPencil className="w-3.5 h-3.5" />
+                  Add Fill-in
                 </button>
               </div>
 
               <button type="submit" disabled={publishing}
-                className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition-colors shadow-sm">
+                className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition-colors shadow-sm touch-manipulation">
                 {publishing
                   ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Publishing...</>
-                  : <><HiLightningBolt className="w-4 h-4" /> Publish Module ({questions.length} Qs)</>}
+                  : <><HiLightningBolt className="w-4 h-4" /> Publish Module ({questions.length} Q{questions.length > 1 ? 's' : ''})</>}
               </button>
             </form>
           </div>
 
-          {/* Recent quiz modules */}
+          {/* Published modules sidebar */}
           <div className="lg:col-span-2">
             <button onClick={() => setShowRecent(!showRecent)}
               className="lg:hidden w-full flex items-center justify-between px-4 py-3 bg-white rounded-xl border border-gray-100 shadow-sm mb-2 touch-manipulation">
@@ -331,8 +353,9 @@ export default function AdminPage() {
             </div>
           </div>
         </div>
+
       ) : (
-        /* ── ORIGINAL TABS (note/question/important/notice) ── */
+        /* ── NOTE / IMPORTANT / NOTICE TABS ── */
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 sm:gap-7">
           <div className="lg:col-span-3">
             <div className="card border border-gray-100 p-4 sm:p-6">
@@ -381,16 +404,16 @@ export default function AdminPage() {
                   </div>
                   <div>
                     <label className="form-label">Attach File (PDF, DOC, Image)</label>
-                    <label className="flex flex-col items-center justify-center w-full h-24 sm:h-28 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-400 hover:bg-primary-50 active:bg-primary-50 transition-all touch-manipulation">
+                    <label className="flex flex-col items-center justify-center w-full h-24 sm:h-28 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-all touch-manipulation">
                       {file ? (
                         <div className="text-center px-4">
-                          <HiUpload className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600 mx-auto mb-1" />
+                          <HiUpload className="w-5 h-5 text-primary-600 mx-auto mb-1" />
                           <p className="text-xs sm:text-sm font-semibold text-primary-700 truncate max-w-[200px] sm:max-w-xs">{file.name}</p>
                           <p className="text-[10px] text-gray-400">{(file.size / 1024).toFixed(1)} KB</p>
                         </div>
                       ) : (
                         <div className="text-center">
-                          <HiUpload className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 mx-auto mb-1" />
+                          <HiUpload className="w-5 h-5 text-gray-400 mx-auto mb-1" />
                           <p className="text-xs sm:text-sm text-gray-500 font-medium">Tap to attach a file</p>
                           <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5">PDF, DOC, DOCX, PNG, JPG</p>
                         </div>
