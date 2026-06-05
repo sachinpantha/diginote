@@ -1,45 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
-import NotesList from '../components/NotesList';
 import api from '../api';
 import { useClass } from '../context/ClassContext';
 import {
-  HiPencilAlt, HiLightningBolt, HiBookOpen, HiCheckCircle,
-  HiXCircle, HiArrowRight, HiRefresh, HiStar, HiChevronDown,
-  HiFilter, HiPlay, HiClock
+  HiLightningBolt, HiBookOpen, HiCheckCircle, HiXCircle,
+  HiArrowRight, HiRefresh, HiFilter, HiPlay, HiClock,
+  HiPencil, HiAdjustments, HiChevronLeft, HiStar,
+  HiTrendingUp, HiFire, HiInformationCircle, HiFlag
 } from 'react-icons/hi';
 
 export default function QuestionsPage() {
-  const [tab, setTab] = useState('notes');
   return (
     <div className="max-w-3xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8">
-      {/* Tab switcher */}
-      <div className="flex gap-1 border-b border-gray-200 mb-5">
-        <TabBtn active={tab === 'notes'} onClick={() => setTab('notes')} Icon={HiPencilAlt}>
-          Practice Q&amp;A
-        </TabBtn>
-        <TabBtn active={tab === 'quiz'} onClick={() => setTab('quiz')} Icon={HiLightningBolt}>
-          <span className="flex items-center gap-1.5">
-            Quiz Modules
-            <span className="hidden sm:inline-flex items-center gap-0.5 bg-violet-100 text-violet-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-              ⚡ NEW
-            </span>
-          </span>
-        </TabBtn>
-      </div>
-
-      {tab === 'notes' ? <NotesList type="question" /> : <QuizSection />}
+      <QuizSection />
     </div>
-  );
-}
-
-function TabBtn({ active, onClick, Icon, children }) {
-  return (
-    <button onClick={onClick}
-      className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors whitespace-nowrap
-        ${active ? 'border-violet-600 text-violet-700 bg-violet-50 rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-      <Icon className="w-4 h-4" />
-      {children}
-    </button>
   );
 }
 
@@ -49,7 +22,7 @@ function QuizSection() {
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [subject, setSubject] = useState('');
-  const [activeQuiz, setActiveQuiz] = useState(null); // { module, questions }
+  const [activeQuiz, setActiveQuiz] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -72,7 +45,18 @@ function QuizSection() {
 
   return (
     <div>
-      {/* Filter bar */}
+      {/* Page header */}
+      <div className="flex items-center gap-3 mb-5">
+        <div className="w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
+          <HiLightningBolt className="w-5 h-5 text-violet-700" />
+        </div>
+        <div>
+          <h1 className="text-base sm:text-xl font-bold text-gray-900 leading-tight">Quiz Modules</h1>
+          {selectedClass && <p className="text-[11px] text-gray-400">Class {selectedClass}</p>}
+        </div>
+      </div>
+
+      {/* Filter */}
       <div className="flex items-center gap-2 mb-4">
         <HiFilter className="w-4 h-4 text-gray-400 flex-shrink-0" />
         <input placeholder="Filter by subject..." value={subject}
@@ -98,7 +82,7 @@ function QuizSection() {
 
 function ModuleCard({ module: m, onStart }) {
   return (
-    <div className="card border border-gray-100 overflow-hidden group hover:shadow-md transition-shadow">
+    <div className="card border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
       <div className="h-1 bg-gradient-to-r from-violet-500 to-indigo-500" />
       <div className="p-4 sm:p-5 flex items-center gap-4">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-md">
@@ -129,17 +113,16 @@ function ModuleCard({ module: m, onStart }) {
 /* ─────────────────── QUIZ GAME ─────────────────── */
 function QuizGame({ module: m, questions, onExit }) {
   const [idx, setIdx] = useState(0);
-  const [selected, setSelected] = useState(null);   // for MCQ: option index
-  const [fillValue, setFillValue] = useState('');   // for fill-in
+  const [selected, setSelected] = useState(null);
+  const [fillValue, setFillValue] = useState('');
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
-  const [results, setResults] = useState([]);       // {correct, answer}
+  const [results, setResults] = useState([]);
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
   const [timer, setTimer] = useState(0);
 
-  // Timer
   useEffect(() => {
     if (done) return;
     const t = setInterval(() => setTimer(s => s + 1), 1000);
@@ -149,6 +132,7 @@ function QuizGame({ module: m, questions, onExit }) {
   const q = questions[idx];
   const isMCQ = q.type === 'mcq' || !q.type;
   const isFill = q.type === 'fill';
+  const fmt = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   const checkAnswer = () => {
     let correct = false;
@@ -177,7 +161,6 @@ function QuizGame({ module: m, questions, onExit }) {
   };
 
   const pct = Math.round((score / questions.length) * 100);
-  const fmt = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   if (done) return (
     <ResultScreen score={score} total={questions.length} pct={pct}
@@ -190,16 +173,16 @@ function QuizGame({ module: m, questions, onExit }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <button onClick={onExit}
-          className="text-xs text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg font-medium transition-colors">
-          ← Exit
+          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg font-medium transition-colors touch-manipulation">
+          <HiChevronLeft className="w-3.5 h-3.5" /> Exit
         </button>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <span className="flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1.5 rounded-full border border-amber-100">
             <HiClock className="w-3.5 h-3.5" /> {fmt(timer)}
           </span>
           {streak >= 2 && (
-            <span className="flex items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1.5 rounded-full border border-orange-100 animate-bounce">
-              🔥 {streak}x
+            <span className="flex items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1.5 rounded-full border border-orange-100">
+              <HiFire className="w-3.5 h-3.5" /> {streak}x
             </span>
           )}
         </div>
@@ -232,10 +215,12 @@ function QuizGame({ module: m, questions, onExit }) {
         <div className="p-5 sm:p-6">
           {/* Type badge */}
           <div className="flex items-center gap-2 mb-3">
-            <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
+            <span className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full ${
               isFill ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-violet-50 text-violet-600 border border-violet-100'
             }`}>
-              {isFill ? '✏️ Fill in the Blank' : '🎯 Multiple Choice'}
+              {isFill
+                ? <><HiPencil className="w-3 h-3" /> Fill in the Blank</>
+                : <><HiAdjustments className="w-3 h-3" /> Multiple Choice</>}
             </span>
             {q.chapter && (
               <span className="text-[11px] text-gray-400 bg-gray-50 px-2 py-1 rounded-full">{q.chapter}</span>
@@ -259,11 +244,9 @@ function QuizGame({ module: m, questions, onExit }) {
                   cls = 'border-2 border-violet-500 bg-violet-50 text-violet-800 shadow-sm';
                 }
                 return (
-                  <button key={i} disabled={revealed}
-                    onClick={() => setSelected(i)}
-                    className={`relative flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-200 text-left touch-manipulation ${cls}
+                  <button key={i} disabled={revealed} onClick={() => setSelected(i)}
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-200 text-left touch-manipulation ${cls}
                       ${!revealed ? 'active:scale-[0.98] cursor-pointer' : 'cursor-default'}`}>
-                    {/* Option label */}
                     <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                       revealed
                         ? isCorrect ? 'bg-green-400 text-white' : isChosen ? 'bg-red-400 text-white' : 'bg-gray-200 text-gray-400'
@@ -283,9 +266,7 @@ function QuizGame({ module: m, questions, onExit }) {
           {/* Fill in the blank */}
           {isFill && (
             <div className="space-y-2">
-              <input
-                type="text"
-                placeholder="Type your answer..."
+              <input type="text" placeholder="Type your answer..."
                 value={fillValue}
                 onChange={e => setFillValue(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !revealed && fillValue.trim()) checkAnswer(); }}
@@ -305,8 +286,8 @@ function QuizGame({ module: m, questions, onExit }) {
                     : 'bg-red-50 text-red-700 border border-red-200'
                 }`}>
                   {fillValue.trim().toLowerCase() === String(q.answer).trim().toLowerCase()
-                    ? <><HiCheckCircle className="w-4 h-4 flex-shrink-0" /> Correct! 🎉</>
-                    : <><HiXCircle className="w-4 h-4 flex-shrink-0" /> Correct answer: <strong>{q.answer}</strong></>
+                    ? <><HiCheckCircle className="w-4 h-4 flex-shrink-0" /> Correct!</>
+                    : <><HiXCircle className="w-4 h-4 flex-shrink-0" /> Correct answer: <strong className="ml-1">{q.answer}</strong></>
                   }
                 </div>
               )}
@@ -315,26 +296,26 @@ function QuizGame({ module: m, questions, onExit }) {
 
           {/* Explanation */}
           {revealed && q.explanation && (
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs sm:text-sm text-blue-700">
-              💡 <strong>Explanation:</strong> {q.explanation}
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs sm:text-sm text-blue-700 flex items-start gap-2">
+              <HiInformationCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span><strong>Explanation:</strong> {q.explanation}</span>
             </div>
           )}
         </div>
 
         {/* Action bar */}
-        <div className="px-5 pb-5 pt-0 flex items-center justify-between gap-3">
+        <div className="px-5 pb-5 pt-0">
           {!revealed ? (
-            <button
-              disabled={isMCQ ? selected === null : !fillValue.trim()}
-              onClick={checkAnswer}
-              className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 disabled:opacity-40 text-white font-bold py-3 rounded-xl transition-colors touch-manipulation">
+            <button disabled={isMCQ ? selected === null : !fillValue.trim()} onClick={checkAnswer}
+              className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 disabled:opacity-40 text-white font-bold py-3 rounded-xl transition-colors touch-manipulation">
               Check Answer
             </button>
           ) : (
             <button onClick={next}
-              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl transition-all shadow-sm touch-manipulation">
-              {idx + 1 >= questions.length ? '🏁 See Results' : 'Next Question'}
-              <HiArrowRight className="w-4 h-4" />
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl transition-all shadow-sm touch-manipulation">
+              {idx + 1 >= questions.length
+                ? <><HiFlag className="w-4 h-4" /> See Results</>
+                : <>Next Question <HiArrowRight className="w-4 h-4" /></>}
             </button>
           )}
         </div>
@@ -345,32 +326,38 @@ function QuizGame({ module: m, questions, onExit }) {
 
 /* ─────────────────── RESULT SCREEN ─────────────────── */
 function ResultScreen({ score, total, pct, bestStreak, time, results, questions, onRestart, onExit, moduleTitle }) {
-  const grade = pct >= 80 ? { emoji: '🏆', label: 'Excellent!', cls: 'text-yellow-600' }
-    : pct >= 60 ? { emoji: '👍', label: 'Good Job!', cls: 'text-green-600' }
-    : pct >= 40 ? { emoji: '📚', label: 'Keep Practicing!', cls: 'text-blue-600' }
-    : { emoji: '💪', label: 'Don\'t Give Up!', cls: 'text-red-600' };
+  const grade = pct >= 80
+    ? { Icon: HiStar,        label: 'Excellent!',       cls: 'text-yellow-600', bg: 'bg-yellow-50' }
+    : pct >= 60
+    ? { Icon: HiTrendingUp,  label: 'Good Job!',         cls: 'text-green-600',  bg: 'bg-green-50'  }
+    : pct >= 40
+    ? { Icon: HiBookOpen,    label: 'Keep Practicing!',  cls: 'text-blue-600',   bg: 'bg-blue-50'   }
+    : { Icon: HiRefresh,     label: "Don't Give Up!",    cls: 'text-red-600',    bg: 'bg-red-50'    };
 
   return (
     <div className="animate-fade-in">
-      {/* Score card */}
       <div className="card border border-gray-100 overflow-hidden shadow-sm mb-4">
         <div className="h-1.5 bg-gradient-to-r from-violet-500 via-indigo-500 to-purple-500" />
         <div className="p-6 text-center">
-          <div className="text-5xl mb-2">{grade.emoji}</div>
+          <div className={`w-16 h-16 ${grade.bg} rounded-2xl flex items-center justify-center mx-auto mb-3`}>
+            <grade.Icon className={`w-8 h-8 ${grade.cls}`} />
+          </div>
           <h2 className={`text-2xl font-black mb-1 ${grade.cls}`}>{grade.label}</h2>
           <p className="text-sm text-gray-500 mb-5">{moduleTitle}</p>
 
-          <div className="text-6xl font-black text-gray-900 mb-1">{pct}<span className="text-3xl text-gray-400">%</span></div>
+          <div className="text-6xl font-black text-gray-900 mb-1">
+            {pct}<span className="text-3xl text-gray-400">%</span>
+          </div>
           <p className="text-gray-500 text-sm mb-6">{score} correct out of {total}</p>
 
           <div className="grid grid-cols-3 gap-3 mb-6">
             {[
-              { label: 'Score', value: `${score}/${total}`, icon: '🎯', bg: 'bg-violet-50', txt: 'text-violet-700' },
-              { label: 'Best Streak', value: `${bestStreak}🔥`, icon: '⚡', bg: 'bg-orange-50', txt: 'text-orange-700' },
-              { label: 'Time', value: time, icon: '⏱️', bg: 'bg-blue-50', txt: 'text-blue-700' },
+              { label: 'Score',       value: `${score}/${total}`, Icon: HiAdjustments, bg: 'bg-violet-50', txt: 'text-violet-700' },
+              { label: 'Best Streak', value: `${bestStreak}x`,    Icon: HiFire,        bg: 'bg-orange-50', txt: 'text-orange-700' },
+              { label: 'Time',        value: time,                 Icon: HiClock,       bg: 'bg-blue-50',   txt: 'text-blue-700'   },
             ].map(s => (
               <div key={s.label} className={`${s.bg} rounded-xl p-3`}>
-                <div className="text-lg mb-0.5">{s.icon}</div>
+                <s.Icon className={`w-5 h-5 ${s.txt} mx-auto mb-1`} />
                 <div className={`font-black text-sm ${s.txt}`}>{s.value}</div>
                 <div className="text-[10px] text-gray-400 font-medium mt-0.5">{s.label}</div>
               </div>
@@ -384,37 +371,38 @@ function ResultScreen({ score, total, pct, bestStreak, time, results, questions,
             </button>
             <button onClick={onExit}
               className="flex-1 flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition-colors touch-manipulation">
-              All Modules
+              <HiChevronLeft className="w-4 h-4" /> All Modules
             </button>
           </div>
         </div>
       </div>
 
-      {/* Review */}
+      {/* Answer review */}
       <div className="card border border-gray-100 overflow-hidden">
         <div className="px-5 py-3.5 border-b border-gray-100 bg-gray-50">
           <h3 className="font-bold text-gray-900 text-sm">Answer Review</h3>
         </div>
         <div className="divide-y divide-gray-100">
           {questions.map((q, i) => (
-            <div key={i} className="px-5 py-3.5">
-              <div className="flex items-start gap-2.5">
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${results[i]?.correct ? 'bg-green-100' : 'bg-red-100'}`}>
-                  {results[i]?.correct
-                    ? <HiCheckCircle className="w-4 h-4 text-green-500" />
-                    : <HiXCircle className="w-4 h-4 text-red-500" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-800 leading-snug">{q.question}</p>
-                  {!results[i]?.correct && (
-                    <p className="text-xs text-green-700 mt-1 font-medium">
-                      ✅ {q.options ? q.options[q.answer] : q.answer}
-                    </p>
-                  )}
-                  {q.explanation && (
-                    <p className="text-xs text-gray-400 mt-1">💡 {q.explanation}</p>
-                  )}
-                </div>
+            <div key={i} className="px-5 py-3.5 flex items-start gap-2.5">
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${results[i]?.correct ? 'bg-green-100' : 'bg-red-100'}`}>
+                {results[i]?.correct
+                  ? <HiCheckCircle className="w-4 h-4 text-green-500" />
+                  : <HiXCircle className="w-4 h-4 text-red-500" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 leading-snug">{q.question}</p>
+                {!results[i]?.correct && (
+                  <p className="text-xs text-green-700 mt-1 font-medium flex items-center gap-1">
+                    <HiCheckCircle className="w-3.5 h-3.5" />
+                    {q.options ? q.options[q.answer] : q.answer}
+                  </p>
+                )}
+                {q.explanation && (
+                  <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                    <HiInformationCircle className="w-3.5 h-3.5 flex-shrink-0" /> {q.explanation}
+                  </p>
+                )}
               </div>
             </div>
           ))}
@@ -435,7 +423,9 @@ function Spinner() {
 function EmptyQuiz() {
   return (
     <div className="card border border-gray-100 py-16 px-6 flex flex-col items-center text-center">
-      <div className="text-5xl mb-4">🎮</div>
+      <div className="w-14 h-14 bg-violet-100 rounded-2xl flex items-center justify-center mb-4">
+        <HiLightningBolt className="w-7 h-7 text-violet-400" />
+      </div>
       <h3 className="font-bold text-gray-700 mb-1">No Quiz Modules Yet</h3>
       <p className="text-gray-400 text-sm max-w-xs">Your teacher will add quiz modules soon. Check back later!</p>
     </div>
