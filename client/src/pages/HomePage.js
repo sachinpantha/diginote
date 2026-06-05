@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 import { useClass } from '../context/ClassContext';
 import {
-  HiBookOpen, HiPencilAlt, HiStar, HiBell,
+  HiBookOpen, HiLightningBolt, HiStar, HiBell,
   HiChevronRight, HiExclamation
 } from 'react-icons/hi';
 
@@ -11,7 +11,7 @@ export default function HomePage() {
   const { selectedClass } = useClass();
   const navigate = useNavigate();
   const [notices, setNotices] = useState([]);
-  const [counts, setCounts] = useState({ note: 0, question: 0, important: 0 });
+  const [counts, setCounts] = useState({ note: 0, quiz: 0, important: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,22 +19,23 @@ export default function HomePage() {
     Promise.all([
       api.get('/notices', { params: { class: selectedClass } }),
       api.get('/notes/counts', { params: { class: selectedClass } }),
-    ]).then(([n, c]) => {
+      api.get('/quiz', { params: { class: selectedClass } }),
+    ]).then(([n, c, q]) => {
       setNotices(n.data.slice(0, 4));
-      setCounts(c.data);
+      setCounts({ ...c.data, quiz: q.data.length });
     }).finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedClass]);
 
   const stats = [
     { to: '/notes',     Icon: HiBookOpen,  label: 'Chapter Notes',      count: counts.note,      bg: 'bg-blue-50   border-blue-100',   iconBg: 'bg-blue-100',   countCls: 'text-blue-700',   iconCls: 'text-blue-600'   },
-    { to: '/questions', Icon: HiPencilAlt, label: 'Practice Questions', count: counts.question,  bg: 'bg-violet-50 border-violet-100', iconBg: 'bg-violet-100', countCls: 'text-violet-700', iconCls: 'text-violet-600' },
+    { to: '/questions', Icon: HiLightningBolt, label: 'Quiz Modules', count: counts.quiz, bg: 'bg-violet-50 border-violet-100', iconBg: 'bg-violet-100', countCls: 'text-violet-700', iconCls: 'text-violet-600' },
     { to: '/important', Icon: HiStar,      label: 'Important Notes',    count: counts.important, bg: 'bg-amber-50  border-amber-100',  iconBg: 'bg-amber-100',  countCls: 'text-amber-700',  iconCls: 'text-amber-600'  },
   ];
 
   const quickLinks = [
     { to: '/notes',     Icon: HiBookOpen,  label: 'Chapter Notes',   sub: `${counts.note} materials`   },
-    { to: '/questions', Icon: HiPencilAlt, label: 'Practice Q&A',    sub: `${counts.question} sets`    },
+    { to: '/questions', Icon: HiLightningBolt, label: 'Quiz Modules', sub: `${counts.quiz} modules` },
     { to: '/important', Icon: HiStar,      label: 'Important Notes', sub: `${counts.important} notes`  },
     { to: '/notices',   Icon: HiBell,      label: 'Notice Board',    sub: `${notices.length} notices`  },
   ];

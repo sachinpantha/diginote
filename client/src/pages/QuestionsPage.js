@@ -68,10 +68,8 @@ function QuizSection() {
         <div className="space-y-3">
           {modules.map(m => (
             <ModuleCard key={m._id} module={m} onStart={async () => {
-              try {
-                const { data } = await api.get(`/quiz/${m._id}/questions`);
-                setActiveQuiz({ module: m, questions: data });
-              } catch { alert('Could not load questions. Try again.'); }
+              const { data } = await api.get(`/quiz/${m._id}/questions`);
+              setActiveQuiz({ module: m, questions: data });
             }} />
           ))}
         </div>
@@ -81,6 +79,12 @@ function QuizSection() {
 }
 
 function ModuleCard({ module: m, onStart }) {
+  const [starting, setStarting] = useState(false);
+  const handleStart = async () => {
+    setStarting(true);
+    try { await onStart(); } catch { alert('Could not load questions. Try again.'); }
+    setStarting(false);
+  };
   return (
     <div className="card border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
       <div className="h-1 bg-gradient-to-r from-violet-500 to-indigo-500" />
@@ -100,10 +104,11 @@ function ModuleCard({ module: m, onStart }) {
             )}
           </div>
         </div>
-        <button onClick={onStart}
-          className="flex-shrink-0 flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors shadow-sm touch-manipulation">
-          <HiPlay className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Start</span>
+        <button onClick={handleStart} disabled={starting}
+          className="flex-shrink-0 flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 disabled:opacity-80 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors shadow-sm touch-manipulation min-w-[60px] justify-center">
+          {starting
+            ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            : <><HiPlay className="w-3.5 h-3.5" /><span className="hidden sm:inline">Start</span></>}
         </button>
       </div>
     </div>
